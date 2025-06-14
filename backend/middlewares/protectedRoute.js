@@ -22,5 +22,10 @@ const protectRoute = async(req,res,next)=>{
         
     }
 }
-
-module.exports = protectRoute;
+const hostOnly = (req, res, next) => {
+    if (req.user.role !== 'host') {
+        return res.status(403).json({ message: "Forbidden: Host access only" });
+    }
+    next();
+}
+module.exports = {protectRoute, hostOnly};

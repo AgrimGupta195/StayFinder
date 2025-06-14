@@ -1,5 +1,5 @@
 const express = require('express');
-const protectRoute = require('../middlewares/protectedRoute');
+const {protectRoute} = require('../middlewares/protectedRoute');
 const { signup, login, logout, checkAuth } = require('../controllers/userController');
 const router = express.Router();
 router.post("/signup",signup)

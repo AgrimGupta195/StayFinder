@@ -51,8 +51,6 @@ const listing = async (req, res) => {
         res.status(500).json({message:"Internal Server error"});
     }
 }
-const cloudinary = require("../lib/cloudinary");
-const Listing = require("../models/listingModel");
 
 const updateListing = async (req, res) => {
   try {
@@ -107,10 +105,29 @@ const updateListing = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
+const deleteListing = async (req, res) => {
+    try {
+        const{id} = req.params;
+        const listing = await Listing.findById(id);
+        if(!listing){
+            return res.status(404).json({message:"Listing not found"});
+        }
+        const images = listing.images;
+        for(let i=0;i<images.length;i++){
+            const publicId = images[i].split("/").pop().split(".")[0];
+            await cloudinary.uploader.destroy(publicId);
+        }
+        await Listing.findByIdAndDelete(id);
+        res.status(200).json({message:"Listing deleted successfully"});
+    } catch (error) {
+        res.status(500).json({message:"Internal Server error"});
+    }
+}
 
 module.exports = {
     createListing,
     allListings,
-    listing
+    listing,
+    updateListing
+    ,deleteListing
 };

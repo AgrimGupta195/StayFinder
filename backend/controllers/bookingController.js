@@ -21,7 +21,8 @@ const createBooking = async (req, res) => {
     if (checkInDate >= checkOutDate) {
       return res.status(400).json({ message: "Check-out must be after check-in" });
     }
-
+    listing.occupied = true;
+    await listing.save();
     const booking = new Booking({
       user: userId,
       listing: listingId,

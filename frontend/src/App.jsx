@@ -9,6 +9,7 @@ import Navbar from './components/Navbar'
 import HomePage from './pages/HomePage'
 import LoadingSpinner from './components/LoadingSpinner'
 import HostPage from './pages/HostPage'
+import PropertyPage from './pages/Property'
 
 const App = () => {
 	const { user, checkAuth, checkingAuth } = useUserStore();
@@ -35,6 +36,7 @@ const App = () => {
 						path='/host-dashboard'
 						element={user?.role === "host" ? <HostPage/> : <Navigate to='/login' />}
 					/>
+					<Route path='/property/:id' element={<PropertyPage />} />
 				</Routes>
 			</div>
 			<Toaster />

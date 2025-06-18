@@ -17,6 +17,10 @@ const listingSchema = new mongoose.Schema({
     enum: ['Apartment', 'House', 'Condo', 'Villa', 'Cottage', 'Townhouse', 'Loft', 'Studio', 'Bungalow', 'Cabin'],
     required: true,
   },
+  occupied:{
+    type: Boolean,
+    default: false,
+  },
   images: [String],
   availableDates: [Date],
   host: {

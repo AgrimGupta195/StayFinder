@@ -1,4 +1,5 @@
 const  cloudinary  = require("../lib/cloudinary");
+const Booking = require("../models/bookingModel");
 const Listing = require("../models/listingModel");
 const createListing = async (req, res) => {
     try {
@@ -41,11 +42,22 @@ const createListing = async (req, res) => {
 
 const allListings = async (req, res) => {
     try {
-        const listings = await Listing.find();
-        res.status(200).json(listings);
-    } catch (error) {
-        res.status(500).json({message:"Internal Server error"});
+    const listings = await Listing.find();
+
+    for (const listing of listings) {
+      const latestBooking = await Booking.findOne({ listingId: listing._id })
+        .sort({ checkOut: -1 });
+      const now = new Date();
+      if (latestBooking && latestBooking.checkOut < now && listing.occupied) {
+        listing.occupied = false;
+        await listing.save();
+      }
     }
+    res.status(200).json(listings);
+  } catch (error) {
+    console.error('Error fetching listings:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 }
 const listing = async (req, res) => {
     try {

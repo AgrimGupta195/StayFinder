@@ -6,8 +6,6 @@ const useListingStore = create((set, get) => ({
   listings: [],
   loading: false,
   error: null,
-
-  // Fetch all listings
   fetchListings: async () => {
     set({ loading: true, error: null });
     try {

@@ -2,7 +2,7 @@ const  cloudinary  = require("../lib/cloudinary");
 const Listing = require("../models/listingModel");
 const createListing = async (req, res) => {
     try {
-        const{ title, description, pricePerNight, images,availableDates,location } = req.body;
+        const{ title, description, pricePerNight, images,availableDates,location,amenities,maxGuests,numBedrooms,numBathrooms,propertyType} = req.body;
         const host = req.user._id;
         if(!images || images.length === 0){
             return res.status(400).json({message:"Images are required"});
@@ -12,7 +12,7 @@ const createListing = async (req, res) => {
             const uploadResponse = await cloudinary.uploader.upload(images[i]);
             imagesArray.push(uploadResponse.secure_url);
          }
-        if(!title || !description || !pricePerNight || !availableDates || !location){
+        if(!title || !description || !pricePerNight || !availableDates || !location || !host || !maxGuests || !numBedrooms || !numBathrooms || !propertyType){
             return res.status(400).json({message:"All fields are required"});
         }
         if(pricePerNight <= 0){
@@ -26,6 +26,11 @@ const createListing = async (req, res) => {
             availableDates,
             location,
             host,
+            maxGuests,
+            numBedrooms,
+            numBathrooms,
+            propertyType,
+            amenities: amenities || []
         });
         await listing.save();
         res.status(201).json(listing);
@@ -52,6 +57,16 @@ const listing = async (req, res) => {
     }
 }
 
+const hostListings = async (req, res) => {
+  try {
+    const hostId = req.user._id;
+    const listings = await Listing.find({ host: hostId });
+    res.status(200).json(listings);
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server error" });
+  }
+};
+
 const updateListing = async (req, res) => {
   try {
     const listingId = req.params.id;
@@ -62,8 +77,6 @@ const updateListing = async (req, res) => {
     if (!existingListing) {
       return res.status(404).json({ message: "Listing not found" });
     }
-
-    // Check if the current user is the host of this listing
     if (existingListing.host.toString() !== hostId.toString()) {
       return res.status(403).json({ message: "Unauthorized: Not your listing" });
     }
@@ -72,12 +85,15 @@ const updateListing = async (req, res) => {
       title,
       description,
       pricePerNight,
-      images, // base64 or url array
+      images,
       availableDates,
       location,
+      amenities,
+      maxGuests,
+      numBedrooms,
+      numBathrooms,
+      propertyType
     } = req.body;
-
-    // Optional: Only update if values are provided
     if (title) existingListing.title = title;
     if (description) existingListing.description = description;
     if (pricePerNight) {
@@ -88,7 +104,14 @@ const updateListing = async (req, res) => {
     }
     if (location) existingListing.location = location;
     if (availableDates) existingListing.availableDates = availableDates;
-
+    if (req.body.amenities) {
+      existingListing.amenities = req.body.amenities;
+    }
+    if (maxGuests) existingListing.maxGuests = maxGuests;
+    if (numBedrooms) existingListing.numBedrooms = numBedrooms; 
+    if (numBathrooms) existingListing.numBathrooms = numBathrooms;
+    if (propertyType) existingListing.propertyType = propertyType;
+    // Handle image uploads
     if (images && images.length > 0) {
       let imagesArray = [];
       for (let i = 0; i < images.length; i++) {

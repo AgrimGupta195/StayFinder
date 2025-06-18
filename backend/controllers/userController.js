@@ -4,6 +4,7 @@ const User = require('../models/userModel');
 const generateToken = require('../lib/utils');
 
 const signup =async(req,res)=>{
+    console.log("signup controller called");
     const{fullName,email,password,role}=req.body;
     try {
         if(!password || !fullName || !email || !role){

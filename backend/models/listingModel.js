@@ -4,12 +4,40 @@ const listingSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   pricePerNight: { type: Number, required: true },
-  location: { type: String, required: true },
+  location: { 
+    State: { type: String, required: true },
+    City: { type: String, required: true },
+    Address: { type: String, required: true },
+    ZipCode: { type: String, required: true },
+    Country: { type: String, required: true },
+    StreetAddress: { type: String, required: true }
+  },
+  propertyType: {
+    type: String,
+    enum: ['Apartment', 'House', 'Condo', 'Villa', 'Cottage', 'Townhouse', 'Loft', 'Studio', 'Bungalow', 'Cabin'],
+    required: true,
+  },
   images: [String],
   availableDates: [Date],
   host: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: true,
+  },
+  amenities: {
+    type: [String],
+    default: [],
+  },
+  maxGuests: {
+    type: Number,
+    required: true,
+  },
+  numBedrooms: {
+    type: Number,
+    required: true,
+  },
+  numBathrooms: {
+    type: Number,
     required: true,
   },
   createdAt: {

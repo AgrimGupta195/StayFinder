@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "start":"vite preview --port 4173",
+    "preview": "vite preview",
+    "postinstall": "cd frontend && npm install && npm run build && cp -r dist ../backend/public"
   },
   "dependencies": {
     "@stripe/stripe-js": "^7.3.1",

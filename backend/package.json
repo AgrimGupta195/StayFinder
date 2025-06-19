@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "postinstall": "cd ../frontend && npm install && npm run build && cp -r dist ../backend/public",
+    "postinstall": "cd ../frontend && npm install --legacy-peer-deps && npm run build && cp -r dist ../backend/public",
     "start": "node server.js"
   },
   "keywords": [],

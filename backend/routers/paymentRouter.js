@@ -1,8 +1,10 @@
-const express = require('express');
+import express from 'express';
+import { protectRoute } from '../middlewares/protectedRoute.js';
+import { createCheckoutSession, checkoutSuccess } from '../controllers/paymentController.js';
+
 const router = express.Router();
-const { protectRoute } = require('../middlewares/protectedRoute');
-const { createCheckoutSession, checkoutSuccess } = require('../controllers/paymentController');
 
 router.post('/create-checkout-session', protectRoute, createCheckoutSession);
-router.post("/checkout-success",protectRoute,checkoutSuccess);
-module.exports = router;
+router.post('/checkout-success', protectRoute, checkoutSuccess);
+
+export default router;

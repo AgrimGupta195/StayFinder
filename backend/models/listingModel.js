@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const listingSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   pricePerNight: { type: Number, required: true },
-  location: { 
+  location: {
     State: { type: String, required: true },
     City: { type: String, required: true },
     Address: { type: String, required: true },
@@ -17,7 +17,7 @@ const listingSchema = new mongoose.Schema({
     enum: ['Apartment', 'House', 'Condo', 'Villa', 'Cottage', 'Townhouse', 'Loft', 'Studio', 'Bungalow', 'Cabin'],
     required: true,
   },
-  occupied:{
+  occupied: {
     type: Boolean,
     default: false,
   },
@@ -48,8 +48,9 @@ const listingSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   }
-},{
-    timestamps: true,
+}, {
+  timestamps: true,
 });
 
-module.exports = mongoose.model('Listing', listingSchema);
+const Listing = mongoose.model('Listing', listingSchema);
+export default Listing;

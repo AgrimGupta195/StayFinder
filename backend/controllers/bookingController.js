@@ -1,80 +1,38 @@
-const Booking = require("../models/bookingModel");
-const Listing = require("../models/listingModel");
+import Booking from "../models/bookingModel.js";
+import Listing from "../models/listingModel.js";
 
-// const createBooking = async (req, res) => {
-//   try {
-//     const userId = req.user._id;
-//     const { listingId, checkIn, checkOut, totalPrice } = req.body;
+// Uncomment and use this only if you want to allow manual booking creation (not recommended for paid bookings)
+// export const createBooking = async (req, res) => { ... }
 
-//     if (!listingId || !checkIn || !checkOut || !totalPrice) {
-//       return res.status(400).json({ message: "All fields are required" });
-//     }
-
-//     const listing = await Listing.findById(listingId);
-//     if (!listing) {
-//       return res.status(404).json({ message: "Listing not found" });
-//     }
-
-//     const checkInDate = new Date(checkIn);
-//     const checkOutDate = new Date(checkOut);
-
-//     if (checkInDate >= checkOutDate) {
-//       return res.status(400).json({ message: "Check-out must be after check-in" });
-//     }
-//     listing.occupied = true;
-//     await listing.save();
-//     const booking = new Booking({
-//       user: userId,
-//       listing: listingId,
-//       checkIn: checkInDate,
-//       checkOut: checkOutDate,
-//       totalPrice,
-//     });
-
-//     await booking.save();
-//     res.status(201).json(booking);
-//   } catch (error) {
-//     console.error("Booking error:", error);
-//     res.status(500).json({ message: "Internal Server Error" });
-//   }
-// };
-
-const getUserBookings = async (req, res) => {
+export const getUserBookings = async (req, res) => {
   try {
     const userId = req.user._id;
     console.log("Fetching bookings for user:", userId);
-    
+
     const bookings = await Booking.find({ user: userId }).populate('listing');
-
-    if (!bookings || bookings.length === 0) {
-      return res.status(404).json({ message: "No bookings found for this user" });
-    }
-
-    res.status(200).json(bookings);
+    res.status(200).json(bookings); // Always return array, even if empty
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-
-const getHostBookings = async (req, res) => {
+export const getHostBookings = async (req, res) => {
   try {
     const hostId = req.user._id;
-    const bookings = await Booking.find({ 'listing.host': hostId }).populate('listing');
-
-    if (!bookings || bookings.length === 0) {
-      return res.status(404).json({ message: "No bookings found for this host" });
-    }
-
-    res.status(200).json(bookings);
+    // Populate listing and filter in JS because you can't query nested fields in referenced docs
+    const bookings = await Booking.find().populate('listing');
+    const hostBookings = bookings.filter(
+      (booking) => booking.listing && booking.listing.host && booking.listing.host.toString() === hostId.toString()
+    );
+    res.status(200).json(hostBookings);
   } catch (error) {
     console.error("Error fetching host bookings:", error);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
-const cancelBooking = async (req, res) => {
+export const cancelBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
     const booking = await Booking.findById(bookingId);
@@ -88,11 +46,3 @@ const cancelBooking = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-
-
-module.exports = {  
-                   getUserBookings, 
-                   getHostBookings, 
-                   cancelBooking 
-                };

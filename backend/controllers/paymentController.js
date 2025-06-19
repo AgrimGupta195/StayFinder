@@ -1,8 +1,8 @@
-const Listing = require("../models/listingModel");
-const Booking = require("../models/bookingModel");
-const { stripe } = require("../lib/stripe.js");
+import Listing from "../models/listingModel.js";
+import Booking from "../models/bookingModel.js";
+import { stripe } from "../lib/stripe.js";
 
-const createCheckoutSession = async (req, res) => {
+export const createCheckoutSession = async (req, res) => {
   try {
     const { listingId, checkIn, checkOut, guests } = req.body;
 
@@ -53,7 +53,6 @@ const createCheckoutSession = async (req, res) => {
         nights: nights.toString(),
       },
     });
-    
 
     res.status(200).json({ id: session.id, totalAmount });
   } catch (error) {
@@ -62,11 +61,11 @@ const createCheckoutSession = async (req, res) => {
   }
 };
 
-const checkoutSuccess = async (req, res) => {
+export const checkoutSuccess = async (req, res) => {
   try {
     const { sessionId } = req.body;
     console.log("Processing successful checkout for session ID:", sessionId);
-    
+
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === "paid") {
@@ -80,7 +79,7 @@ const checkoutSuccess = async (req, res) => {
         guests: Number(guests),
         totalNights: Number(nights),
         totalPrice: session.amount_total / 100,
-        sessionId: sessionId, // <-- FIXED: use sessionId, not stripeSessionId
+        sessionId: sessionId, // <-- use sessionId, not stripeSessionId
         status: "confirmed",
       });
 
@@ -98,9 +97,4 @@ const checkoutSuccess = async (req, res) => {
     console.error("Error processing successful checkout:", error);
     res.status(500).json({ message: "Error processing successful checkout", error: error.message });
   }
-};
-
-module.exports = {
-  createCheckoutSession,
-  checkoutSuccess,
 };

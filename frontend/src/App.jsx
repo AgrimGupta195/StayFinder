@@ -10,6 +10,9 @@ import HomePage from './pages/HomePage'
 import LoadingSpinner from './components/LoadingSpinner'
 import HostPage from './pages/HostPage'
 import PropertyPage from './pages/Property'
+import BookingPage from './pages/yourBooking'
+import BookingSuccessPage from './pages/PropertySuccess'
+import BookingCancelPage from './pages/PropertyRejection'
 
 const App = () => {
 	const { user, checkAuth, checkingAuth } = useUserStore();
@@ -37,6 +40,12 @@ const App = () => {
 						element={user?.role === "host" ? <HostPage/> : <Navigate to='/login' />}
 					/>
 					<Route path='/property/:id' element={<PropertyPage />} />
+					<Route path='/yourBooking' element={user ? <BookingPage /> : <Navigate to='/login' />} />
+					<Route
+						path='/booking-success'
+						element={user ? <BookingSuccessPage /> : <Navigate to='/login' />}
+					/>
+					<Route path='/booking-cancel' element={user ? <BookingCancelPage /> : <Navigate to='/login' />} />
 				</Routes>
 			</div>
 			<Toaster />

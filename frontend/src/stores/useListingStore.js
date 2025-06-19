@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 
 const useListingStore = create((set, get) => ({
   listings: [],
+  hostListings: [],
   loading: false,
   error: null,
   fetchListings: async () => {
@@ -40,7 +41,18 @@ const useListingStore = create((set, get) => ({
       toast.error(error.response?.data?.message || 'Failed to create listing');
     }
   },
-
+ fetchHostListings: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axios.get(`/listings/hostProperties`);
+      set({ hostListings: response.data });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to fetch host listings');
+      set({ error: error.message });
+    } finally {
+      set({ loading: false });
+    }
+  },
   // Update listing
   updateListing: async (id, updatedData) => {
     try {

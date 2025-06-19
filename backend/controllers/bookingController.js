@@ -1,47 +1,49 @@
 const Booking = require("../models/bookingModel");
 const Listing = require("../models/listingModel");
 
-const createBooking = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { listingId, checkIn, checkOut, totalPrice } = req.body;
+// const createBooking = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
+//     const { listingId, checkIn, checkOut, totalPrice } = req.body;
 
-    if (!listingId || !checkIn || !checkOut || !totalPrice) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+//     if (!listingId || !checkIn || !checkOut || !totalPrice) {
+//       return res.status(400).json({ message: "All fields are required" });
+//     }
 
-    const listing = await Listing.findById(listingId);
-    if (!listing) {
-      return res.status(404).json({ message: "Listing not found" });
-    }
+//     const listing = await Listing.findById(listingId);
+//     if (!listing) {
+//       return res.status(404).json({ message: "Listing not found" });
+//     }
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+//     const checkInDate = new Date(checkIn);
+//     const checkOutDate = new Date(checkOut);
 
-    if (checkInDate >= checkOutDate) {
-      return res.status(400).json({ message: "Check-out must be after check-in" });
-    }
-    listing.occupied = true;
-    await listing.save();
-    const booking = new Booking({
-      user: userId,
-      listing: listingId,
-      checkIn: checkInDate,
-      checkOut: checkOutDate,
-      totalPrice,
-    });
+//     if (checkInDate >= checkOutDate) {
+//       return res.status(400).json({ message: "Check-out must be after check-in" });
+//     }
+//     listing.occupied = true;
+//     await listing.save();
+//     const booking = new Booking({
+//       user: userId,
+//       listing: listingId,
+//       checkIn: checkInDate,
+//       checkOut: checkOutDate,
+//       totalPrice,
+//     });
 
-    await booking.save();
-    res.status(201).json(booking);
-  } catch (error) {
-    console.error("Booking error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-};
+//     await booking.save();
+//     res.status(201).json(booking);
+//   } catch (error) {
+//     console.error("Booking error:", error);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
 
 const getUserBookings = async (req, res) => {
   try {
     const userId = req.user._id;
+    console.log("Fetching bookings for user:", userId);
+    
     const bookings = await Booking.find({ user: userId }).populate('listing');
 
     if (!bookings || bookings.length === 0) {
@@ -89,7 +91,7 @@ const cancelBooking = async (req, res) => {
 
 
 
-module.exports = { createBooking , 
+module.exports = {  
                    getUserBookings, 
                    getHostBookings, 
                    cancelBooking 

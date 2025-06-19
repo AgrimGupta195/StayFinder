@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 
 // import AnalyticsTab from "../components/AnalyticsTab";
 import CreateProductForm from "../components/CreateProductForm";
+import HostListingsManager from "../components/ListedProperties";
 // // import ProductsList from "../components/ProductsList";
 // import { useProductStore } from "../stores/useProductStore";
 
@@ -50,8 +51,8 @@ const AdminPage = () => {
 					))}
 				</div>
 				{activeTab === "create" && <CreateProductForm />}
-				{/* {activeTab === "products" && <ProductsList />}
-				{activeTab === "analytics" && <AnalyticsTab />} */}
+				{activeTab === "products" && <HostListingsManager />}
+				{/* {activeTab === "analytics" && <AnalyticsTab />} */}
 			</div>
 		</div>
 	);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Home, DollarSign, Filter, Star, Users, Bed, Bath } from 'lucide-react';
+import { Search, MapPin, Home, Filter, Star, Users, Bed, Bath, ArrowUpDown } from 'lucide-react';
 import useListingStore from '../stores/useListingStore';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,9 +15,7 @@ const HomePage = () => {
     city: '',
     state: '',
     propertyType: '',
-    minPrice: '',
-    maxPrice: '',
-    maxGuests: ''
+    priceSort: '' // 'low-to-high' or 'high-to-low'
   });
   const [showFilters, setShowFilters] = useState(false);
 
@@ -48,16 +46,11 @@ const HomePage = () => {
       filtered = filtered.filter(listing => listing.propertyType === filters.propertyType);
     }
 
-    if (filters.minPrice) {
-      filtered = filtered.filter(listing => listing.pricePerNight >= parseInt(filters.minPrice));
-    }
-
-    if (filters.maxPrice) {
-      filtered = filtered.filter(listing => listing.pricePerNight <= parseInt(filters.maxPrice));
-    }
-
-    if (filters.maxGuests) {
-      filtered = filtered.filter(listing => listing.maxGuests >= parseInt(filters.maxGuests));
+    // Apply price sorting
+    if (filters.priceSort === 'low-to-high') {
+      filtered = filtered.sort((a, b) => a.pricePerNight - b.pricePerNight);
+    } else if (filters.priceSort === 'high-to-low') {
+      filtered = filtered.sort((a, b) => b.pricePerNight - a.pricePerNight);
     }
 
     setFilteredListings(filtered);
@@ -72,9 +65,7 @@ const HomePage = () => {
       city: '',
       state: '',
       propertyType: '',
-      minPrice: '',
-      maxPrice: '',
-      maxGuests: ''
+      priceSort: ''
     });
   };
 
@@ -184,6 +175,20 @@ const HomePage = () => {
                   />
                 </div>
               </div>
+              <div className="flex-1">
+                <div className="relative">
+                  <ArrowUpDown className="absolute left-3 top-3 text-emerald-400" size={20} />
+                  <select
+                    className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
+                    value={filters.priceSort}
+                    onChange={(e) => handleFilterChange('priceSort', e.target.value)}
+                  >
+                    <option value="">Sort by Price</option>
+                    <option value="low-to-high">Price: Low to High</option>
+                    <option value="high-to-low">Price: High to Low</option>
+                  </select>
+                </div>
+              </div>
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
@@ -203,60 +208,6 @@ const HomePage = () => {
         {showFilters && (
           <div className="max-w-6xl mx-auto mb-8 animate-in slide-in-from-top duration-300">
             <div className="bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-lg border border-emerald-500/30 p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-emerald-400 mb-2">Property Type</label>
-                  <select
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    value={filters.propertyType}
-                    onChange={(e) => handleFilterChange('propertyType', e.target.value)}
-                  >
-                    <option value="">All Types</option>
-                    {propertyTypes.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-400 mb-2">Min Price</label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 text-emerald-400" size={20} />
-                    <input
-                      type="number"
-                      placeholder="0"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      value={filters.minPrice}
-                      onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-400 mb-2">Max Price</label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 text-emerald-400" size={20} />
-                    <input
-                      type="number"
-                      placeholder="1000"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      value={filters.maxPrice}
-                      onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-emerald-400 mb-2">Max Guests</label>
-                  <div className="relative">
-                    <Users className="absolute left-3 top-3 text-emerald-400" size={20} />
-                    <input
-                      type="number"
-                      placeholder="1"
-                      className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                      value={filters.maxGuests}
-                      onChange={(e) => handleFilterChange('maxGuests', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-300 text-sm">
                   {filteredListings.length} {filteredListings.length === 1 ? 'property' : 'properties'} found

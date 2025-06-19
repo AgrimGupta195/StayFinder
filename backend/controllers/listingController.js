@@ -164,5 +164,6 @@ module.exports = {
     allListings,
     listing,
     updateListing
-    ,deleteListing
+    ,deleteListing,
+    hostListings
 };

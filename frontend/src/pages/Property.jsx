@@ -22,7 +22,14 @@ import {
   Copy,
   X
 } from 'lucide-react';
+import { motion } from "framer-motion";
+import { loadStripe } from "@stripe/stripe-js";
+import axios from "../lib/axios";
 import useListingStore from '../stores/useListingStore';
+
+const stripePromise = loadStripe(
+  "pk_test_51RKZFrBHPKUjFETcNAgz5uaNckvq6loxGYZQGfgbmiD1TFjU8w5AR0BkQ1skMEox2dLOfVKMYR5ke2vz8Hf6e0xb00NmdYb606"
+);
 
 const PropertyPage = () => {
   const { id } = useParams();
@@ -35,7 +42,7 @@ const PropertyPage = () => {
   const [guests, setGuests] = useState(1);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (!listings || listings.length === 0) {
@@ -85,7 +92,9 @@ const PropertyPage = () => {
     return 0;
   };
 
-  const totalPrice = calculateNights() * (property?.pricePerNight || 0);
+  const serviceFee = 25;
+  const basePrice = calculateNights() * (property?.pricePerNight || 0);
+  const totalPrice = basePrice + serviceFee;
 
   const handleShare = async () => {
     const shareData = {
@@ -146,7 +155,7 @@ const PropertyPage = () => {
     }
   };
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!checkIn || !checkOut) {
       alert('Please select check-in and check-out dates');
       return;
@@ -155,7 +164,35 @@ const PropertyPage = () => {
       alert('Check-out date must be after check-in date');
       return;
     }
-    alert('Booking functionality would be implemented here!');
+
+    setIsProcessingPayment(true);
+
+    try {
+      const stripe = await stripePromise;
+
+      // Send the fields directly as expected by backend
+      const res = await axios.post("/payments/create-checkout-session", {
+        listingId: property._id,
+        checkIn,
+        checkOut,
+        guests,
+      });
+
+      const session = res.data;
+      const result = await stripe.redirectToCheckout({
+        sessionId: session.id,
+      });
+
+      if (result.error) {
+        console.error("Error:", result.error);
+        alert('Payment failed. Please try again.');
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('Booking failed. Please try again.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   if (loading) {
@@ -223,14 +260,6 @@ const PropertyPage = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <button 
-                onClick={() => setIsFavorite(!isFavorite)}
-                className={`p-3 bg-gray-800 bg-opacity-50 border border-emerald-500/30 rounded-lg hover:border-emerald-500/50 transition-colors ${
-                  isFavorite ? 'text-red-400' : 'text-emerald-400'
-                }`}
-              >
-                <Heart size={20} fill={isFavorite ? 'currentColor' : 'none'} />
-              </button>
               <button 
                 onClick={handleShare}
                 className="p-3 bg-gray-800 bg-opacity-50 border border-emerald-500/30 rounded-lg hover:border-emerald-500/50 transition-colors"
@@ -313,35 +342,16 @@ const PropertyPage = () => {
                 )}
               </div>
             </div>
-
-            {/* Host Info (if available) */}
-            {property.host && (
-              <div className="bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-lg border border-emerald-500/30 p-6">
-                <h2 className="text-2xl font-bold text-emerald-400 mb-4">Meet your host</h2>
-                <div className="flex items-center gap-4">
-                  <img
-                    src={property.host.avatar || "https://via.placeholder.com/60x60?text=Host"}
-                    alt={property.host.name}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
-                  <div>
-                    <h4 className="text-lg font-semibold text-white">{property.host.name}</h4>
-                    <p className="text-gray-300">Host since {property.host.joinedDate}</p>
-                    {property.host.verified && (
-                      <div className="flex items-center gap-1 text-emerald-400 mt-1">
-                        <Check size={16} />
-                        <span className="text-sm">Verified host</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Booking Card */}
           <div className="lg:col-span-1">
-            <div className="bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-lg border border-emerald-500/30 p-6 sticky top-8">
+            <motion.div 
+              className="bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-lg border border-emerald-500/30 p-6 sticky top-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <span className="text-3xl font-bold text-emerald-400">${property.pricePerNight || property.price}</span>
@@ -396,31 +406,41 @@ const PropertyPage = () => {
                 <div className="space-y-2 mb-6 p-4 bg-gray-700 bg-opacity-50 rounded-lg">
                   <div className="flex justify-between text-gray-300">
                     <span>${property.pricePerNight || property.price} × {calculateNights()} nights</span>
-                    <span>${(property.pricePerNight || property.price) * calculateNights()}</span>
+                    <span>${basePrice}</span>
                   </div>
                   <div className="flex justify-between text-gray-300">
                     <span>Service fee</span>
-                    <span>$25</span>
+                    <span>${serviceFee}</span>
                   </div>
                   <hr className="border-gray-600" />
                   <div className="flex justify-between font-bold text-emerald-400">
                     <span>Total</span>
-                    <span>${totalPrice + 25}</span>
+                    <span>${totalPrice}</span>
                   </div>
                 </div>
               )}
 
-              <button 
+              <motion.button 
                 onClick={handleBooking}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300 transform hover:scale-105"
+                disabled={isProcessingPayment}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300 transform hover:scale-105 disabled:hover:scale-100"
+                whileHover={{ scale: isProcessingPayment ? 1 : 1.05 }}
+                whileTap={{ scale: isProcessingPayment ? 1 : 0.95 }}
               >
-                Reserve Now
-              </button>
+                {isProcessingPayment ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Processing...
+                  </div>
+                ) : (
+                  'Reserve Now'
+                )}
+              </motion.button>
               
               <p className="text-xs text-gray-400 text-center mt-2">
-                You won't be charged yet
+                {isProcessingPayment ? 'Redirecting to payment...' : "You won't be charged yet"}
               </p>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
